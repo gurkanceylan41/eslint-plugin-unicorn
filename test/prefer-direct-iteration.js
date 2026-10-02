@@ -72,6 +72,11 @@ test.snapshot({
 		'new Map(new Map().entries(), extra)',
 		'Promise.all([promise].values(), extra)',
 
+		// Destructured receivers do not have the type of the initializer
+		'const [map] = [new Map()]; [...map.values()];',
+		'const [map] = [new Map()]; for (const item of map.keys()) {}',
+		'const {map} = {map: new Map()}; [...map.values()];',
+
 		// TypeScript annotations that are not supported default iterator matches
 		typescript('for (const item of map.values()) {}'),
 		typescript('for (const item of set.entries()) {}'),
@@ -170,6 +175,10 @@ test.snapshot({
 		typeAware('class Collection { values() { return [][Symbol.iterator](); } } const collection = new Collection(); [...collection.values()];'),
 		typeAware('interface Collection { entries(): Iterable<[string, string]>; } declare const collection: Collection; [...collection.entries()];'),
 		typeAware('export {}; class Map { entries() { return []; } } declare function getMap(): Map; const map = getMap(); [...map.entries()];'),
+
+		// Destructured receivers use their own type, not the type of the initializer
+		typeAware('declare function useState<T>(value: T): [T, (value: T) => void]; const [map] = useState(new Map<string, string>()); [...map.values()];'),
+		typeAware('declare const pair: [Map<string, string>, string]; const [map] = pair; [...map.values()];'),
 	],
 	invalid: [
 		typeAware('type Items = string[]; function foo(items: Items) { return [...items.values()]; }'),
@@ -181,5 +190,7 @@ test.snapshot({
 		typeAware('type Values = string[] | Set<string>; function foo(values: Values) { return [...values.values()]; }'),
 		typeAware('type Bytes = Uint8Array; declare const bytes: Bytes; [...bytes.values()];'),
 		typeAware('declare function getItems(): string[]; const items = getItems(); [...items.values()];'),
+		typeAware('declare function useState<T>(value: T): [T, (value: T) => void]; const [map] = useState(new Map<string, string>()); [...map.entries()];'),
+		typeAware('declare const pair: [string[], string]; const [items] = pair; [...items.values()];'),
 	],
 });

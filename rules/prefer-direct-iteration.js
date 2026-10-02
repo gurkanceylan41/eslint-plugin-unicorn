@@ -200,6 +200,8 @@ const getTypesFromVariable = (node, context, visitedVariables) => {
 		definition.type !== 'Variable'
 		|| definition.parent.kind !== 'const'
 		|| !definition.node.init
+		// `const [map] = …` — the initializer is not the value of `map`
+		|| definition.node.id !== definition.name
 	) {
 		return;
 	}
